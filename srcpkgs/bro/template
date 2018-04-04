@@ -1,0 +1,14 @@
+# Template file for 'bro'
+pkgname=bro
+version=2.5.3
+revision=1
+build_style=cmake
+configure_args="BinPAC_ROOT_DIR='/usr'"
+hostmakedepends="binpac python3 bison flex"
+makedepends="zlib-devel libressl-devel bind-devel libpcap-devel binpac-devel"
+short_desc="Network analysis framework"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="GPL-3"
+homepage="https://www.bro.org"
+distfiles="https://www.bro.org/downloads/bro-${version}.tar.gz"
+checksum=7384fa14e6cebc86488040877fc0bfd50868e969f0fa05178cef0116e4116225
