@@ -1,0 +1,16 @@
+# Template file for 'plover'
+pkgname=plover
+version=3.1.1
+revision=1
+build_style=python2-module
+hostmakedepends="python-setuptools"
+pycompile_module="plover"
+depends="
+ python wmctrl python-appdirs python-dbus python-pyserial python-six 
+ python-xlib python-hidapi wxPython"
+short_desc="Real-time stenography engine"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="GPL-3"
+homepage="http://www.openstenoproject.org/plover/"
+distfiles="https://github.com/openstenoproject/plover/archive/v${version}.tar.gz"
+checksum=7914f9a656d02fdad7e887774efcf1452c62cd46b7ebdef3d6a6c31b1229afc1
