@@ -1,0 +1,25 @@
+# Template file for 'thedarkmod'
+pkgname=thedarkmod
+version=2.05
+revision=1
+hostmakedepends="p7zip scons m4"
+makedepends="glew-devel libpng-devel libjpeg-turbo-devel"
+short_desc="first-person stealth game inspired by the original Thief series"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="GPL-3"
+homepage="http://www.thedarkmod.com"
+distfiles="http://www.thedarkmod.com/sources/thedarkmod.${version}.src.7z"
+checksum=55a548413e91105d25faf7556a8d6f85b773cbfb3c682649d157fdc8bfa5cbbb
+only_for_archs="x86_64 i686"
+
+do_extract() {
+	7z x ${XBPS_SRCDISTDIR}/${pkgname}-${version}/${pkgname}.${version}.src.7z
+}
+
+do_build() {
+	scons BUILD="release" BUILD_GAMEPAK="1"
+}
+
+do_install() {
+	exit
+}

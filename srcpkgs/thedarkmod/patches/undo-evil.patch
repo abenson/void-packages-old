@@ -1,0 +1,26 @@
+--- game/gamesys/TypeInfo.cpp.orig
++++ game/gamesys/TypeInfo.cpp
+@@ -18,8 +18,8 @@
+ ******************************************************************************/
+ 
+ // This is real evil but allows the code to inspect arbitrary class variables.
+-#define private		public
+-#define protected	public
++//#define private		public
++//#define protected	public
+ 
+ #include "precompiled_game.h"
+ #pragma hdrstop
+--- game/Game_local.h.orig
++++ game/Game_local.h
+@@ -51,8 +51,8 @@
+ 
+ #ifdef ID_DEBUG_UNINITIALIZED_MEMORY
+ // This is real evil but allows the code to inspect arbitrary class variables.
+-#define private		public
+-#define protected	public
++//#define private		public
++//#define protected	public
+ #endif
+ 
+ class idLight;			// J.C.Denton: Required for the declaration of FindMainAmbientLight
