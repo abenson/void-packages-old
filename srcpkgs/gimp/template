@@ -1,7 +1,7 @@
 # Template build file for 'gimp'.
 pkgname=gimp
-version=2.8.22
-revision=2
+version=2.10.0
+revision=1
 lib32disabled=yes
 build_style=gnu-configure
 configure_args="--without-aa --without-gvfs --enable-gimp-console
@@ -9,7 +9,7 @@ configure_args="--without-aa --without-gvfs --enable-gimp-console
 hostmakedepends="automake gettext-devel glib-devel libtool pkg-config intltool"
 makedepends="libpng-devel gtk+-devel lcms2-devel
  alsa-lib-devel dbus-glib-devel libXmu-devel libXcursor-devel
- libexif-devel libsoup-devel libwmf-devel librsvg-devel
+ libexif-devel libsoup-devel libwmf-devel librsvg-devel libgexiv2-devel
  libmng-devel libXpm-devel libcurl-devel babl-devel gegl-devel pygtk-devel
  libgudev-devel jasper-devel poppler-glib-devel ghostscript-devel iso-codes"
 short_desc="The GNU image manipulation program"
@@ -19,7 +19,7 @@ maintainer="Juan RP <xtraeme@voidlinux.eu>"
 homepage="https://www.gimp.org"
 license="GPL-3"
 distfiles="https://download.gimp.org/pub/gimp/v${version%.*}/gimp-${version}.tar.bz2"
-checksum=9187a35cc52b110d78124d7b27b68a68ade14a794c2721314bac6134d2a5638a
+checksum=7fcc96fb88cb0a0595d2610f63a15dec245bb37bf9db527d37a24fb75e547de2
 
 if [ -n "$CROSS_BUILD" ]; then
 	hostmakedepends+=" dbus-glib-devel gdk-pixbuf-devel pygtk-devel"
