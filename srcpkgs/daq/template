@@ -1,0 +1,25 @@
+# Template file for 'daq'
+pkgname=daq
+version=2.2.2
+revision=1
+build_style=gnu-configure
+hostmakedepends="flex"
+makedepends="libpcap-devel"
+depends=""
+short_desc="Data Acquisition library, for packet I/O"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="GPL-2.0-or-later"
+homepage="https://www.snort.org/"
+distfiles="https://www.snort.org/downloads/snortplus/daq-${version}.tar.gz"
+checksum=7cd818cabb1ad35360e83076e54775f07165ee71407dc672d147e27d3cd37f7b
+
+daq-devel_package() {
+	short_desc+=" - development files"
+	depends="${makedepends} ${sourcepkg}>=${version}_${revision}"
+	pkg_install() {
+		vmove usr/bin/daq-modules-config
+		vmove usr/include
+		vmove "usr/lib/*.so"
+		vmove "usr/lib/*.a"
+	}
+}
