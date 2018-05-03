@@ -3338,3 +3338,4 @@ libSoapySDR.so.0.6 SoapySDR-0.6.1_1
 libeditorconfig.so.0 editorconfig-0.12.2_1
 libkid3-core.so.3.6.0 kid3-3.6.0_1
 libkid3-gui.so.3.6.0 kid3-3.6.0_1
+libticonv.so.8 libticonv-1.1.5_1
