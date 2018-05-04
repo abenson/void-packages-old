@@ -1,0 +1,15 @@
+# Template file for 'ostinato'
+pkgname=ostinato
+version=0.9
+revision=1
+build_style=qmake
+patch_args="-Np1"
+makedepends="qt5-devel qt5-tools-devel qt5-script-devel protobuf-devel libpcap-devel"
+short_desc="Network traffic generator"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="GPL-3.0-or-later"
+homepage="https://ostinato.org/"
+distfiles="https://github.com/pstavirs/${pkgname}/archive/v${version}.tar.gz"
+checksum=e597818d62a4caed0e555a16a378781732183736b21ad0050c7cb2c08b0cbe05
+
+

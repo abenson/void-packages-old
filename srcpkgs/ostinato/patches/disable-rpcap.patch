@@ -1,0 +1,20 @@
+--- a/rpc/pbrpc.pro.orig
++++ b/rpc/pbrpc.pro
+@@ -1,7 +1,6 @@
+ TEMPLATE = lib
+ CONFIG += qt staticlib
+ QT += network
+-DEFINES += HAVE_REMOTE
+ LIBS += -lprotobuf
+ HEADERS += rpcserver.h rpcconn.h pbrpccontroller.h pbrpcchannel.h pbqtio.h
+ SOURCES += rpcserver.cpp rpcconn.cpp pbrpcchannel.cpp
+--- a/server/drone.pro.orig
++++ b/server/drone.pro
+@@ -2,7 +2,6 @@
+ CONFIG += qt ver_info
+ QT += network script xml
+ QT -= gui
+-DEFINES += HAVE_REMOTE WPCAP
+ linux*:system(grep -q IFLA_STATS64 /usr/include/linux/if_link.h): \
+     DEFINES += HAVE_IFLA_STATS64
+ INCLUDEPATH += "../rpc"

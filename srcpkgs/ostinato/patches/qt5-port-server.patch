@@ -1,0 +1,163 @@
+From 9f4b70c5a88af2463e71ac33a04caea2880232e7 Mon Sep 17 00:00:00 2001
+From: Srivats P <pstavirs@users.noreply.github.com>
+Date: Thu, 15 Mar 2018 19:34:42 +0530
+Subject: [PATCH] Port server code from Qt4 to Qt5
+
+Verification/testing of porting changes is pending
+---
+ server/abstractport.h  |  2 +-
+ server/pcapport.cpp    | 19 +++++++++----------
+ server/pcaprxstats.cpp |  8 ++++----
+ server/winpcapport.cpp |  4 ++--
+ 4 files changed, 16 insertions(+), 17 deletions(-)
+
+diff --git a/server/abstractport.h b/server/abstractport.h
+index b0e5744..beacc3a 100644
+--- a/server/abstractport.h
++++ b/server/abstractport.h
+@@ -33,7 +33,7 @@ class PacketBuffer;
+ class QIODevice;
+ 
+ // TODO: send notification back to client(s)
+-#define notify qWarning
++#define Xnotify qWarning
+ 
+ class AbstractPort
+ {
+diff --git a/server/pcapport.cpp b/server/pcapport.cpp
+index 2768952..c15e6a4 100644
+--- a/server/pcapport.cpp
++++ b/server/pcapport.cpp
+@@ -350,14 +350,14 @@ void PcapPort::PortMonitor::stop()
+  */
+ PcapPort::PortCapturer::PortCapturer(const char *device)
+ {
+-    device_ = QString::fromAscii(device);
++    device_ = QString::fromLatin1(device);
+     stop_ = false;
+     state_ = kNotStarted;
+ 
+     if (!capFile_.open())
+         qWarning("Unable to open temp cap file");
+ 
+-    qDebug("cap file = %s", capFile_.fileName().toAscii().constData());
++    qDebug("cap file = %s", qPrintable(capFile_.fileName()));
+ 
+     dumpHandle_ = NULL;
+     handle_ = NULL;
+@@ -381,7 +381,7 @@ void PcapPort::PortCapturer::run()
+         goto _exit;
+     }
+ _retry:
+-    handle_ = pcap_open_live(device_.toAscii().constData(), 65535, 
++    handle_ = pcap_open_live(qPrintable(device_), 65535,
+                     flag, 1000 /* ms */, errbuf);
+ 
+     if (handle_ == NULL)
+@@ -389,20 +389,19 @@ void PcapPort::PortCapturer::run()
+         if (flag && QString(errbuf).contains("promiscuous"))
+         {
+             qDebug("%s:can't set promiscuous mode, trying non-promisc", 
+-                    device_.toAscii().constData());
++                    qPrintable(device_));
+             flag = 0;
+             goto _retry;
+         }
+         else
+         {
+             qDebug("%s: Error opening port %s: %s\n", __FUNCTION__,
+-                    device_.toAscii().constData(), errbuf);
++                    qPrintable(device_), errbuf);
+             goto _exit;
+         }
+     }
+ 
+-    dumpHandle_ = pcap_dump_open(handle_, 
+-            capFile_.fileName().toAscii().constData());
++    dumpHandle_ = pcap_dump_open(handle_, qPrintable(capFile_.fileName()));
+     state_ = kRunning;
+     while (1)
+     {
+@@ -492,7 +491,7 @@ QFile* PcapPort::PortCapturer::captureFile()
+ PcapPort::EmulationTransceiver::EmulationTransceiver(const char *device,
+         DeviceManager *deviceManager)
+ {
+-    device_ = QString::fromAscii(device);
++    device_ = QString::fromLatin1(device);
+     deviceManager_ = deviceManager;
+     stop_ = false;
+     state_ = kNotStarted;
+@@ -565,7 +564,7 @@ void PcapPort::EmulationTransceiver::run()
+     {
+         if (flags && QString(errbuf).contains("promiscuous"))
+         {
+-            notify("Unable to set promiscuous mode on <%s> - "
++            Xnotify("Unable to set promiscuous mode on <%s> - "
+                     "device emulation will not work", qPrintable(device_));
+             goto _exit;
+         }
+@@ -580,7 +579,7 @@ void PcapPort::EmulationTransceiver::run()
+ #endif
+         else
+         {
+-            notify("Unable to open <%s> [%s] - device emulation will not work",
++            Xnotify("Unable to open <%s> [%s] - device emulation will not work",
+                     qPrintable(device_), errbuf);
+             goto _exit;
+         }
+diff --git a/server/pcaprxstats.cpp b/server/pcaprxstats.cpp
+index 139ed65..826035f 100644
+--- a/server/pcaprxstats.cpp
++++ b/server/pcaprxstats.cpp
+@@ -22,12 +22,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
+ #include "pcapextra.h"
+ #include "../common/sign.h"
+ 
+-#define notify qWarning // FIXME
++#define Xnotify qWarning // FIXME
+ 
+ PcapRxStats::PcapRxStats(const char *device, StreamStats &portStreamStats)
+     : streamStats_(portStreamStats)
+ {
+-    device_ = QString::fromAscii(device);
++    device_ = QString::fromLatin1(device);
+     stop_ = false;
+     state_ = kNotStarted;
+     isDirectional_ = true;
+@@ -65,12 +65,12 @@ void PcapRxStats::run()
+                     flags, 100 /* ms */, errbuf);
+     if (handle_ == NULL) {
+         if (flags && QString(errbuf).contains("promiscuous")) {
+-            notify("Unable to set promiscuous mode on <%s> - "
++            Xnotify("Unable to set promiscuous mode on <%s> - "
+                     "stream stats rx will not work", qPrintable(device_));
+             goto _exit;
+         }
+         else {
+-            notify("Unable to open <%s> [%s] - stream stats rx will not work",
++            Xnotify("Unable to open <%s> [%s] - stream stats rx will not work",
+                     qPrintable(device_), errbuf);
+             goto _exit;
+         }
+diff --git a/server/winpcapport.cpp b/server/winpcapport.cpp
+index e549d95..e81a484 100644
+--- a/server/winpcapport.cpp
++++ b/server/winpcapport.cpp
+@@ -88,7 +88,7 @@ bool WinPcapPort::hasExclusiveControl()
+                 + "/bindconfig.exe");
+     int exitCode;
+ 
+-    qDebug("%s: %s", __FUNCTION__, portName.toAscii().constData());
++    qDebug("%s: %s", __FUNCTION__, qPrintable(portName));
+ 
+     if (!QFile::exists(bindConfigFilePath))
+         return false;
+@@ -111,7 +111,7 @@ bool WinPcapPort::setExclusiveControl(bool exclusive)
+                 + "/bindconfig.exe");
+     QString status;
+ 
+-    qDebug("%s: %s", __FUNCTION__, portName.toAscii().constData());
++    qDebug("%s: %s", __FUNCTION__, qPrintable(portName));
+ 
+     if (!QFile::exists(bindConfigFilePath))
+         return false;

@@ -1,0 +1,1153 @@
+From f801982830d1c4970319a79bf3bd116ed0ad5e12 Mon Sep 17 00:00:00 2001
+From: Srivats P <pstavirs@users.noreply.github.com>
+Date: Wed, 14 Mar 2018 21:58:56 +0530
+Subject: [PATCH] Port common, rpc and client code to Qt5
+
+Still pending
+* server port to Qt5
+* verify/test the port
+---
+ client/arpstatusmodel.cpp     |  7 +++--
+ client/devicegroupdialog.cpp  |  2 +-
+ client/devicegroupmodel.cpp   |  3 +-
+ client/devicemodel.cpp        |  6 ++--
+ client/dumpview.cpp           |  3 ++
+ client/dumpview.h             |  2 +-
+ client/hexlineedit.cpp        |  4 +--
+ client/ndpstatusmodel.cpp     |  7 +++--
+ client/ostinato.pro           |  2 +-
+ client/packetmodel.cpp        |  3 +-
+ client/portgroup.cpp          |  2 +-
+ client/portmodel.cpp          |  4 ++-
+ client/portstatsmodel.cpp     |  4 ++-
+ client/portswindow.cpp        |  2 +-
+ client/streamconfigdialog.cpp | 10 ++++---
+ client/streamconfigdialog.h   |  4 +++
+ client/streamlistdelegate.cpp |  2 +-
+ client/streammodel.cpp        |  8 ++++--
+ client/xtreeview.h            |  4 +++
+ common/abstractprotocol.cpp   |  4 +--
+ common/icmp6pdml.cpp          |  2 +-
+ common/nativefileformat.cpp   | 31 ++++++++-------------
+ common/ossnfileformat.cpp     |  4 +--
+ common/ostmfileformat.cpp     |  4 +--
+ common/ostprotogui.pro        |  2 +-
+ common/pcapfileformat.cpp     | 14 +++++-----
+ common/pdmlfileformat.cpp     |  4 +--
+ common/pdmlprotocol.cpp       |  6 ++--
+ common/pdmlprotocols.cpp      |  2 +-
+ common/pdmlreader.cpp         | 20 ++++++--------
+ common/uint128.h              |  4 +--
+ common/updater.cpp            | 64 ++++++++++++++-----------------------------
+ common/updater.h              | 13 ++++-----
+ common/userscript.cpp         | 16 +++++------
+ rpc/pbrpccommon.h             |  4 +--
+ rpc/rpcconn.cpp               | 14 +++++-----
+ rpc/rpcconn.h                 |  5 ++--
+ rpc/rpcserver.cpp             |  7 +++--
+ 38 files changed, 148 insertions(+), 151 deletions(-)
+
+diff --git a/client/arpstatusmodel.cpp b/client/arpstatusmodel.cpp
+index cd6af5d..52c823e 100644
+--- a/client/arpstatusmodel.cpp
++++ b/client/arpstatusmodel.cpp
+@@ -138,14 +138,17 @@ QVariant ArpStatusModel::data(const QModelIndex &index, int role) const
+ 
+ void ArpStatusModel::setDeviceIndex(Port *port, int deviceIndex)
+ {
++    beginResetModel();
+     port_ = port;
+     deviceIndex_ = deviceIndex;
+     if (port_)
+         neighbors_ = port_->deviceNeighbors(deviceIndex);
+-    reset();
++    endResetModel();
+ }
+ 
+ void ArpStatusModel::updateArpStatus()
+ {
+-    reset();
++    // FIXME: why needed?
++    beginResetModel();
++    endResetModel();
+ }
+diff --git a/client/devicegroupdialog.cpp b/client/devicegroupdialog.cpp
+index 84cc3c1..35fff29 100644
+--- a/client/devicegroupdialog.cpp
++++ b/client/devicegroupdialog.cpp
+@@ -96,7 +96,7 @@ DeviceGroupDialog::DeviceGroupDialog(
+             vlans->setItemDelegateForColumn(i, spd);
+     }
+ 
+-    vlans->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
++    vlans->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+     vlans->resizeRowsToContents();
+ 
+     // Set vlan tag count *after* adding all items, so connected slots
+diff --git a/client/devicegroupmodel.cpp b/client/devicegroupmodel.cpp
+index 88d7fc1..5b90765 100644
+--- a/client/devicegroupmodel.cpp
++++ b/client/devicegroupmodel.cpp
+@@ -257,8 +257,9 @@ bool DeviceGroupModel::removeRows(
+ 
+ void DeviceGroupModel::setPort(Port *port)
+ {
++    beginResetModel();
+     port_ = port;
+-    reset();
++    endResetModel();
+ }
+ 
+ //
+diff --git a/client/devicemodel.cpp b/client/devicemodel.cpp
+index d917e80..348a295 100644
+--- a/client/devicemodel.cpp
++++ b/client/devicemodel.cpp
+@@ -243,10 +243,11 @@ QVariant DeviceModel::data(const QModelIndex &index, int role) const
+ 
+ void DeviceModel::setPort(Port *port)
+ {
++    beginResetModel();
+     port_ = port;
+     if (port_)
+         connect(port_, SIGNAL(deviceInfoChanged()), SLOT(updateDeviceList()));
+-    reset();
++    endResetModel();
+ }
+ 
+ QAbstractItemModel* DeviceModel::detailModel(const QModelIndex &index)
+@@ -268,7 +269,8 @@ QAbstractItemModel* DeviceModel::detailModel(const QModelIndex &index)
+ 
+ void DeviceModel::updateDeviceList()
+ {
+-    reset();
++    beginResetModel();
++    endResetModel();
+ }
+ 
+ // Style roles for drillable fields
+diff --git a/client/dumpview.cpp b/client/dumpview.cpp
+index fe99e01..f895ea4 100644
+--- a/client/dumpview.cpp
++++ b/client/dumpview.cpp
+@@ -19,6 +19,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
+ 
+ #include "dumpview.h"
+ 
++#include <QScrollBar>
++#include <QStylePainter>
++
+ //! \todo Enable Scrollbars
+ 
+ DumpView::DumpView(QWidget *parent)
+diff --git a/client/dumpview.h b/client/dumpview.h
+index c99e34a..b35a213 100644
+--- a/client/dumpview.h
++++ b/client/dumpview.h
+@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+ 
+-#include <QtGui> // FIXME: High
++#include <QAbstractItemView>
+ 
+ 
+ class DumpView: public QAbstractItemView
+diff --git a/client/hexlineedit.cpp b/client/hexlineedit.cpp
+index 6150084..e893a54 100644
+--- a/client/hexlineedit.cpp
++++ b/client/hexlineedit.cpp
+@@ -64,10 +64,10 @@ void HexLineEdit::focusOutEvent(QFocusEvent* /*e*/)
+     bool isOk;
+     ulong    num;
+ 
+-    qDebug("before = %s\n", text().toAscii().data());
++    qDebug("before = %s\n", qPrintable(text()));
+     num = text().remove(QChar(' ')).toULong(&isOk, 16);
+     setText(uintToHexStr(num, 4));
+-    qDebug("after = %s\n", text().toAscii().data());
++    qDebug("after = %s\n", qPrintable(text()));
+ #undef uintToHexStr
+ #endif
+ }
+diff --git a/client/ndpstatusmodel.cpp b/client/ndpstatusmodel.cpp
+index 4a48694..fed9d61 100644
+--- a/client/ndpstatusmodel.cpp
++++ b/client/ndpstatusmodel.cpp
+@@ -142,14 +142,17 @@ QVariant NdpStatusModel::data(const QModelIndex &index, int role) const
+ 
+ void NdpStatusModel::setDeviceIndex(Port *port, int deviceIndex)
+ {
++    beginResetModel();
+     port_ = port;
+     deviceIndex_ = deviceIndex;
+     if (port_)
+         neighbors_ = port_->deviceNeighbors(deviceIndex);
+-    reset();
++    endResetModel();
+ }
+ 
+ void NdpStatusModel::updateNdpStatus()
+ {
+-    reset();
++    // FIXME: why needed?
++    beginResetModel();
++    endResetModel();
+ }
+diff --git a/client/ostinato.pro b/client/ostinato.pro
+index 67da357..877ff43 100644
+--- a/client/ostinato.pro
++++ b/client/ostinato.pro
+@@ -3,7 +3,7 @@ CONFIG += qt ver_info
+ macx: TARGET = Ostinato
+ win32:RC_FILE = ostinato.rc
+ macx:ICON = icons/logo.icns
+-QT += network script xml
++QT += widgets network script xml
+ INCLUDEPATH += "../rpc/" "../common/"
+ win32 {
+     QMAKE_LFLAGS += -static
+diff --git a/client/packetmodel.cpp b/client/packetmodel.cpp
+index ecb4196..df1cf2d 100644
+--- a/client/packetmodel.cpp
++++ b/client/packetmodel.cpp
+@@ -38,8 +38,9 @@ void PacketModel::setSelectedProtocols(ProtocolListIterator &iter)
+ 
+     if (mSelectedProtocols != currentProtocols)
+     {
++        beginResetModel();
+         mSelectedProtocols = currentProtocols;
+-        reset();
++        endResetModel();
+     }
+     else
+     {
+diff --git a/client/portgroup.cpp b/client/portgroup.cpp
+index f52ee05..4c7180f 100644
+--- a/client/portgroup.cpp
++++ b/client/portgroup.cpp
+@@ -1412,7 +1412,7 @@ void PortGroup::viewCapture(QList<uint> *portList)
+         portId->set_id(portList->at(i));
+ 
+         capFile->open(QIODevice::ReadWrite|QIODevice::Truncate);
+-        qDebug("Temp CapFile = %s", capFile->fileName().toAscii().constData());
++        qDebug("Temp CapFile = %s", qPrintable(capFile->fileName()));
+         controller->setBinaryBlob(capFile);
+ 
+         serviceStub->getCaptureBuffer(controller, portId, buf,
+diff --git a/client/portmodel.cpp b/client/portmodel.cpp
+index e1e0f06..f1e50b6 100644
+--- a/client/portmodel.cpp
++++ b/client/portmodel.cpp
+@@ -343,5 +343,7 @@ void PortModel::portGroupRemoved()
+ 
+ void PortModel::when_portListChanged()
+ {
+-    reset();
++    // FIXME: why needed?
++    beginResetModel();
++    endResetModel();
+ }
+diff --git a/client/portstatsmodel.cpp b/client/portstatsmodel.cpp
+index 625f7a9..b91e763 100644
+--- a/client/portstatsmodel.cpp
++++ b/client/portstatsmodel.cpp
+@@ -308,6 +308,8 @@ void PortStatsModel::when_portListChanged()
+ {
+     int i, count = 0;
+ 
++    beginResetModel();
++
+     // recalc numPorts
+     while (numPorts.size())
+         numPorts.removeFirst();
+@@ -318,7 +320,7 @@ void PortStatsModel::when_portListChanged()
+         numPorts.append(count);
+     }
+ 
+-    reset();
++    endResetModel();
+ }
+ 
+ // FIXME: unused? if used, the index calculation row/column needs to be swapped
+diff --git a/client/portswindow.cpp b/client/portswindow.cpp
+index 10fb3b7..4c1eba1 100644
+--- a/client/portswindow.cpp
++++ b/client/portswindow.cpp
+@@ -846,7 +846,7 @@ void PortsWindow::on_actionDuplicate_Stream_triggered()
+     if (model->hasSelection())
+     {
+         bool isOk;
+-        int count = QInputDialog::getInteger(this, "Duplicate Streams",
++        int count = QInputDialog::getInt(this, "Duplicate Streams",
+                 "Count", 1, 1, 9999, 1, &isOk);
+ 
+         if (!isOk)
+diff --git a/client/streamconfigdialog.cpp b/client/streamconfigdialog.cpp
+index 6fb378c..cb05216 100644
+--- a/client/streamconfigdialog.cpp
++++ b/client/streamconfigdialog.cpp
+@@ -30,6 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
+ #include "../common/protocolmanager.h"
+ #include "../common/protocolwidgetfactory.h"
+ 
++#include <QMessageBox>
++
+ extern ProtocolManager *OstProtocolManager;
+ extern ProtocolWidgetFactory *OstProtocolWidgetFactory;
+ 
+@@ -429,7 +431,7 @@ void StreamConfigDialog::on_cmbPktLenMode_currentIndexChanged(QString mode)
+     }
+     else
+     {
+-        qWarning("Unhandled/Unknown PktLenMode = %s", mode.toAscii().data());
++        qWarning("Unhandled/Unknown PktLenMode = %s", qPrintable(mode));
+     }
+ }
+ 
+@@ -710,9 +712,9 @@ void StreamConfigDialog::on_lePattern_editingFinished()
+     QString    str;
+ 
+     num = lePattern->text().remove(QChar(' ')).toULong(&isOk, 16);
+-    qDebug("editfinished (%s | %x)\n", lePattern->text().toAscii().data(), num);
++    qDebug("editfinished (%s | %x)\n", qPrintable(lePattern->text()));
+     lePattern->setText(uintToHexStr(num, str, 4));
+-    qDebug("editfinished (%s | %x)\n", lePattern->text().toAscii().data(), num);
++    qDebug("editfinished (%s | %x)\n", qPrintable(lePattern->text()));
+ }
+ #endif
+ 
+@@ -1186,7 +1188,7 @@ void StreamConfigDialog::on_leBurstsPerSec_textChanged(const QString &text)
+     uint burstSize = lePacketsPerBurst->text().toULong(&isOk);
+     uint frameLen;
+ 
+-    qDebug("start of %s(%s)", __FUNCTION__, text.toAscii().constData());
++    qDebug("start of %s(%s)", __FUNCTION__, qPrintable(text));
+     if (pStream->lenMode() == Stream::e_fl_fixed)
+         frameLen = pStream->frameLen();
+     else
+diff --git a/client/streamconfigdialog.h b/client/streamconfigdialog.h
+index ffe1039..ec07491 100644
+--- a/client/streamconfigdialog.h
++++ b/client/streamconfigdialog.h
+@@ -27,6 +27,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
+ #include "packetmodel.h"
+ #include "modeltest.h"
+ 
++#include <QFileDialog>
++#include <QProgressDialog>
++#include <QStringListModel>
++
+ #define MAX_MAC_ITER_COUNT     256
+ #define MIN_PKT_LEN            64
+ #define MAX_PKT_LEN            16384
+diff --git a/client/streamlistdelegate.cpp b/client/streamlistdelegate.cpp
+index f15bc18..a48c471 100644
+--- a/client/streamlistdelegate.cpp
++++ b/client/streamlistdelegate.cpp
+@@ -177,7 +177,7 @@ bool StreamListDelegate::editorEvent(QEvent *event, QAbstractItemModel *model,
+         if ((event->type() == QEvent::MouseButtonRelease)
+             || (event->type() == QEvent::MouseButtonDblClick))
+         {
+-            QRect checkRect = check(option, option.rect, Qt::Checked);
++            QRect checkRect = doCheck(option, option.rect, Qt::Checked);
+             QRect emptyRect;
+             doLayout(option, &checkRect, &emptyRect, &emptyRect, false);
+             if (!checkRect.contains(static_cast<QMouseEvent*>(event)->pos()))
+diff --git a/client/streammodel.cpp b/client/streammodel.cpp
+index a97acde..dc7f2af 100644
+--- a/client/streammodel.cpp
++++ b/client/streammodel.cpp
+@@ -277,6 +277,7 @@ bool StreamModel::removeRows(int row, int count, const QModelIndex &/*parent*/)
+ 
+ void StreamModel::setCurrentPortIndex(const QModelIndex &current)
+ {
++    beginResetModel();
+     if (!current.isValid() || !pgl->isPort(current))
+     {
+         qDebug("current is either invalid or not a port");
+@@ -298,7 +299,7 @@ void StreamModel::setCurrentPortIndex(const QModelIndex &current)
+         connect(mCurrentPort, SIGNAL(streamListChanged(int, int)),
+                 this, SLOT(when_mCurrentPort_streamListChanged(int, int)));
+     }
+-    reset();
++    endResetModel();
+ }
+ 
+ void StreamModel::when_mCurrentPort_streamListChanged(int portGroupId, 
+@@ -309,6 +310,9 @@ void StreamModel::when_mCurrentPort_streamListChanged(int portGroupId,
+     {
+         if ((quint32(portGroupId) == mCurrentPort->portGroupId())
+                 && (quint32(portId) == mCurrentPort->id()))
+-            reset();
++        {
++            beginResetModel();
++            endResetModel();
++        }
+     }
+ }
+diff --git a/client/xtreeview.h b/client/xtreeview.h
+index b69eebb..ce367f8 100644
+--- a/client/xtreeview.h
++++ b/client/xtreeview.h
+@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
+ 
+ #include <QMouseEvent>
+ 
++#if 0 // FIXME: Test and remove
+ #if QT_VERSION >= 0x050000
+ #error "Do we even need this anymore?"
+ #endif
+@@ -45,6 +46,9 @@ class XTreeView : public QTreeView
+         QTreeView::mousePressEvent(event);
+     }
+ };
++#else
++typedef QTreeView XTreeView;
++#endif
+ 
+ #endif
+ 
+diff --git a/common/abstractprotocol.cpp b/common/abstractprotocol.cpp
+index 7939d10..91edc5c 100644
+--- a/common/abstractprotocol.cpp
++++ b/common/abstractprotocol.cpp
+@@ -620,9 +620,9 @@ QByteArray AbstractProtocol::protocolFrameValue(int streamIndex, bool forCksum)
+             else
+                 field = fieldData(i, FieldFrameValue, streamIndex).toByteArray();
+             qDebug("<<< (%d, %db) %s >>>", proto.size(), lastbitpos,
+-                    QString(proto.toHex()).toAscii().constData());
++                    qPrintable(QString(proto.toHex())));
+             qDebug("  < %d: (%db/%dB) %s >", i, bits, field.size(),
+-                    QString(field.toHex()).toAscii().constData());
++                    qPrintable(QString(field.toHex())));
+ 
+             if (bits == (uint) field.size() * 8)
+             {
+diff --git a/common/icmp6pdml.cpp b/common/icmp6pdml.cpp
+index 53c4a34..5d09864 100644
+--- a/common/icmp6pdml.cpp
++++ b/common/icmp6pdml.cpp
+@@ -94,7 +94,7 @@ void PdmlIcmp6Protocol::unknownFieldHandler(QString name,
+     }
+     else
+     {
+-        qDebug("unexpected field %s", name.toAscii().constData());
++        qDebug("unexpected field %s", qPrintable(name));
+     }
+ }
+ 
+diff --git a/common/nativefileformat.cpp b/common/nativefileformat.cpp
+index cc0456b..f7b6f12 100644
+--- a/common/nativefileformat.cpp
++++ b/common/nativefileformat.cpp
+@@ -103,7 +103,7 @@ bool NativeFileFormat::open(
+     qDebug("%s: size = %d", __FUNCTION__, size);
+ 
+     //qDebug("Read %d bytes", buf.size());
+-    //qDebug("%s", QString(buf.toHex()).toAscii().constData());
++    //qDebug("%s", qPrintable(QString(buf.toHex())));
+ 
+     // Parse and verify magic
+     if (!magic.ParseFromArray(
+@@ -148,7 +148,7 @@ bool NativeFileFormat::open(
+     }
+ 
+     qDebug("%s: File MetaData (INFORMATION) - \n%s", __FUNCTION__,
+-       QString().fromStdString(meta.DebugString()).toAscii().constData());
++       meta.DebugString().c_str());
+     qDebug("%s: END MetaData", __FUNCTION__);
+ 
+     // MetaData Validation(s)
+@@ -193,11 +193,8 @@ bool NativeFileFormat::open(
+ 
+ _content_parse_fail:
+     error = QString(tr("Failed parsing %1 contents")).arg(fileName);
+-    qDebug("Error: %s", QString().fromStdString(
+-            content.InitializationErrorString())
+-                .toAscii().constData());
+-    qDebug("Debug: %s", QString().fromStdString(
+-            content.DebugString()).toAscii().constData());
++    qDebug("Error: %s", content.InitializationErrorString().c_str());
++    qDebug("Debug: %s", content.DebugString().c_str());
+     goto _fail;
+ _incompatible_file_version:
+     error = QString(tr("%1 is in an incompatible format version - %2.%3.%4"
+@@ -217,9 +214,7 @@ bool NativeFileFormat::open(
+     goto _fail;
+ _metadata_parse_fail:
+     error = QString(tr("Failed parsing %1 meta data")).arg(fileName);
+-    qDebug("Error: %s", QString().fromStdString(
+-            meta.data().InitializationErrorString())
+-                .toAscii().constData());
++    qDebug("Error: %s", meta.data().InitializationErrorString().c_str());
+     goto _fail;
+ _cksum_verify_fail:
+     error = QString(tr("%1 checksum validation failed!\nExpected:%2 Actual:%3"))
+@@ -236,18 +231,14 @@ bool NativeFileFormat::open(
+     goto _fail;
+ _cksum_parse_fail:
+     error = QString(tr("Failed parsing %1 checksum")).arg(fileName);
+-    qDebug("Error: %s", QString().fromStdString(
+-            cksum.InitializationErrorString())
+-                .toAscii().constData());
++    qDebug("Error: %s", cksum.InitializationErrorString().c_str());
+     goto _fail;
+ _magic_match_fail:
+     error = QString(tr("%1 is not an Ostinato file")).arg(fileName);
+     goto _fail;
+ _magic_parse_fail:
+     error = QString(tr("%1 does not look like an Ostinato file")).arg(fileName);
+-    qDebug("Error: %s", QString().fromStdString(
+-            magic.InitializationErrorString())
+-                .toAscii().constData());
++    qDebug("Error: %s", magic.InitializationErrorString().c_str());
+     goto _fail;
+ _read_fail:
+     error = QString(tr("Error reading from %1")).arg(fileName);
+@@ -263,7 +254,7 @@ bool NativeFileFormat::open(
+     error = QString(tr("Error opening %1")).arg(fileName);
+     goto _fail;
+ _fail:
+-    qDebug("%s", error.toAscii().constData());
++    qDebug("%s", qPrintable(error));
+     return false;
+ }
+ 
+@@ -344,7 +335,7 @@ bool NativeFileFormat::save(
+     }
+ 
+     qDebug("Writing %d bytes", buf.size());
+-    //qDebug("%s", QString(buf.toHex()).toAscii().constData());
++    //qDebug("%s", qPrintable(QString(buf.toHex())));
+ 
+     // TODO: emit status("Writing to disk...");
+     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
+@@ -402,7 +393,7 @@ bool NativeFileFormat::save(
+                 .arg(QString().fromStdString(content.DebugString()));
+     goto _fail;
+ _fail:
+-    qDebug("%s", error.toAscii().constData());
++    qDebug("%s", qPrintable(error));
+     return false;
+ }
+ 
+@@ -431,7 +422,7 @@ bool NativeFileFormat::isNativeFileFormat(
+         if (!meta.ParseFromArray(
+                 (void*)(buf.constData() + kFileMetaDataOffset), metaSize)) {
+             qDebug("%s: File MetaData\n%s", __FUNCTION__,
+-                    QString().fromStdString(meta.DebugString()).toAscii().constData());
++                    meta.DebugString().c_str());
+             goto _close_exit;
+         }
+         if (meta.data().file_type() == fileType)
+diff --git a/common/ossnfileformat.cpp b/common/ossnfileformat.cpp
+index adb943c..30faccd 100644
+--- a/common/ossnfileformat.cpp
++++ b/common/ossnfileformat.cpp
+@@ -50,7 +50,7 @@ bool OssnFileFormat::open(const QString fileName,
+     error = QString(tr("%1 does not contain a session")).arg(fileName);
+     goto _fail;
+ _fail:
+-    qDebug("%s", error.toAscii().constData());
++    qDebug("%s", qPrintable(error));
+ _exit:
+     return false;
+ }
+@@ -76,7 +76,7 @@ bool OssnFileFormat::save(const OstProto::SessionContent &session,
+                 .arg(QString().fromStdString(session.DebugString()));
+     goto _fail;
+ _fail:
+-    qDebug("%s", error.toAscii().constData());
++    qDebug("%s", qPrintable(error));
+     return false;
+ }
+ 
+diff --git a/common/ostmfileformat.cpp b/common/ostmfileformat.cpp
+index 3cbd75c..639e90c 100644
+--- a/common/ostmfileformat.cpp
++++ b/common/ostmfileformat.cpp
+@@ -50,7 +50,7 @@ bool OstmFileFormat::open(const QString fileName,
+     error = QString(tr("%1 does not contain any streams")).arg(fileName);
+     goto _fail;
+ _fail:
+-    qDebug("%s", error.toAscii().constData());
++    qDebug("%s", qPrintable(error));
+     return false;
+ }
+ 
+@@ -75,7 +75,7 @@ bool OstmFileFormat::save(const OstProto::StreamConfigList streams,
+                 .arg(QString().fromStdString(streams.DebugString()));
+     goto _fail;
+ _fail:
+-    qDebug("%s", error.toAscii().constData());
++    qDebug("%s", qPrintable(error));
+     return false;
+ }
+ 
+diff --git a/common/ostprotogui.pro b/common/ostprotogui.pro
+index e29ac50..c8430dc 100644
+--- a/common/ostprotogui.pro
++++ b/common/ostprotogui.pro
+@@ -1,6 +1,6 @@
+ TEMPLATE = lib
+ CONFIG += qt staticlib
+-QT += network xml script
++QT += widgets network xml script
+ INCLUDEPATH += "../extra/qhexedit2/src"
+ LIBS += \
+     -lprotobuf
+diff --git a/common/pcapfileformat.cpp b/common/pcapfileformat.cpp
+index 55853a6..1db047d 100644
+--- a/common/pcapfileformat.cpp
++++ b/common/pcapfileformat.cpp
+@@ -115,7 +115,7 @@ bool PcapFileFormat::open(const QString fileName,
+             goto _err_unzip_fail;
+         }
+ 
+-        qDebug("decompressing to %s", file2.fileName().toAscii().constData());
++        qDebug("decompressing to %s", qPrintable(file2.fileName()));
+ 
+         gzip.setStandardOutputFile(file2.fileName());
+         gzip.start(OstProtoLib::gzipPath(), 
+@@ -195,7 +195,7 @@ bool PcapFileFormat::open(const QString fileName,
+             goto _non_pdml;
+         }
+ 
+-        qDebug("generating PDML %s", pdmlFile.fileName().toAscii().constData());
++        qDebug("generating PDML %s", qPrintable(pdmlFile.fileName()));
+         emit status("Generating PDML...");
+         emit target(0);
+ 
+@@ -265,7 +265,7 @@ bool PcapFileFormat::open(const QString fileName,
+             goto _diff_fail;
+         }
+         qDebug("generating text file (original) %s", 
+-                originalTextFile.fileName().toAscii().constData());
++                qPrintable(originalTextFile.fileName()));
+ 
+         emit status("Preparing original PCAP for diff...");
+         emit target(0);
+@@ -325,7 +325,7 @@ bool PcapFileFormat::open(const QString fileName,
+             goto _diff_fail;
+         }
+         qDebug("generating text file (imported) %s", 
+-                importedTextFile.fileName().toAscii().constData());
++                qPrintable(importedTextFile.fileName()));
+ 
+         emit status("Preparing imported PCAP for diff...");
+         emit target(0);
+@@ -370,9 +370,9 @@ bool PcapFileFormat::open(const QString fileName,
+             goto _diff_fail;
+         }
+         qDebug("diffing %s and %s > %s", 
+-                originalTextFile.fileName().toAscii().constData(),
+-                importedTextFile.fileName().toAscii().constData(),
+-                diffFile.fileName().toAscii().constData());
++                qPrintable(originalTextFile.fileName()),
++                qPrintable(importedTextFile.fileName()),
++                qPrintable(diffFile.fileName()));
+ 
+         emit status("Taking diff...");
+         emit target(0);
+diff --git a/common/pdmlfileformat.cpp b/common/pdmlfileformat.cpp
+index f522a8c..b2e6f24 100644
+--- a/common/pdmlfileformat.cpp
++++ b/common/pdmlfileformat.cpp
+@@ -91,7 +91,7 @@ bool PdmlFileFormat::save(const OstProto::StreamConfigList streams,
+         goto _fail;
+     }
+ 
+-    qDebug("intermediate PCAP %s", pcapFile.fileName().toAscii().constData());
++    qDebug("intermediate PCAP %s", qPrintable(pcapFile.fileName()));
+ 
+     connect(fmt, SIGNAL(target(int)), this, SIGNAL(target(int)));
+     connect(fmt, SIGNAL(progress(int)), this, SIGNAL(progress(int)));
+@@ -99,7 +99,7 @@ bool PdmlFileFormat::save(const OstProto::StreamConfigList streams,
+     emit status("Writing intermediate PCAP file...");
+     isOk = fmt->save(streams, pcapFile.fileName(), error);
+ 
+-    qDebug("generating PDML %s", fileName.toAscii().constData());
++    qDebug("generating PDML %s", qPrintable(fileName));
+     emit status("Converting PCAP to PDML...");
+     emit target(0);
+ 
+diff --git a/common/pdmlprotocol.cpp b/common/pdmlprotocol.cpp
+index a682aeb..91e0dfd 100644
+--- a/common/pdmlprotocol.cpp
++++ b/common/pdmlprotocol.cpp
+@@ -162,8 +162,8 @@ void PdmlProtocol::fieldHandler(QString name,
+         QString valueHexStr = attributes.value("value").toString();
+ 
+         qDebug("\t(KNOWN) fieldName:%s, value:%s",
+-                name.toAscii().constData(), 
+-                valueHexStr.toAscii().constData());
++                qPrintable(name), 
++                qPrintable(valueHexStr));
+ 
+         knownFieldHandler(name, valueHexStr, pbProto);
+     }
+@@ -178,7 +178,7 @@ void PdmlProtocol::fieldHandler(QString name,
+             size = attributes.value("size").toString().toInt();
+ 
+         qDebug("\t(UNKNOWN) fieldName:%s, pos:%d, size:%d",
+-                name.toAscii().constData(), pos, size);
++                qPrintable(name), pos, size);
+ 
+         unknownFieldHandler(name, pos, size, attributes, pbProto, stream);
+     }
+diff --git a/common/pdmlprotocols.cpp b/common/pdmlprotocols.cpp
+index c64d46d..e81351e 100644
+--- a/common/pdmlprotocols.cpp
++++ b/common/pdmlprotocols.cpp
+@@ -106,7 +106,7 @@ void PdmlUnknownProtocol::unknownFieldHandler(QString name, int pos,
+     OstProto::HexDump *hexDump = pbProto->MutableExtension(OstProto::hexDump);
+ 
+     qDebug("  hexdump: %s, pos = %d, expPos_ = %d, endPos_ = %d\n", 
+-            name.toAscii().constData(), 
++            qPrintable(name), 
+             pos, expPos_, endPos_); 
+ 
+     // Skipped field? Pad with zero!
+diff --git a/common/pdmlreader.cpp b/common/pdmlreader.cpp
+index 197b3e1..0bc17d1 100644
+--- a/common/pdmlreader.cpp
++++ b/common/pdmlreader.cpp
+@@ -107,7 +107,7 @@ bool PdmlReader::read(QIODevice *device, PcapFileFormat *pcap, bool *stop)
+     {
+         qDebug("Line %lld", lineNumber());
+         qDebug("Col %lld", columnNumber());
+-        qDebug("%s", errorString().toAscii().constData());
++        qDebug("%s", qPrintable(errorString()));
+         return false;
+     }
+     return true;
+@@ -151,8 +151,7 @@ void PdmlReader::skipElement()
+ {
+     Q_ASSERT(isStartElement());
+ 
+-    qDebug("skipping element - <%s>", 
+-                    name().toString().toAscii().constData());
++    qDebug("skipping element - <%s>", qPrintable(name().toString()));
+     while (!atEnd())
+     {
+         readNext();
+@@ -298,7 +297,7 @@ void PdmlReader::readProto()
+         size = attributes().value("size").toString().toInt();
+ 
+     qDebug("proto: %s, pos = %d, expPos_ = %d, size = %d", 
+-            protoName.toAscii().constData(), pos, expPos_, size);
++            qPrintable(protoName), pos, expPos_, size);
+ 
+     // This is a heuristic to skip protocols which are not part of
+     // this frame, but of a reassembled segment spanning several frames
+@@ -355,7 +354,7 @@ void PdmlReader::readProto()
+     pdmlProto = appendPdmlProto(protoName, &pbProto);
+ 
+     qDebug("%s: preProtocolHandler(expPos = %d)", 
+-            protoName.toAscii().constData(), expPos_);
++            qPrintable(protoName), expPos_);
+     pdmlProto->preProtocolHandler(protoName, attributes(), expPos_, pbProto,
+             currentStream_);
+ 
+@@ -371,8 +370,8 @@ void PdmlReader::readProto()
+             if (name() == "proto")
+             {
+                 // an embedded proto
+-                qDebug("embedded proto: %s\n", attributes().value("name")
+-                        .toString().toAscii().constData());
++                qDebug("embedded proto: %s\n", 
++                        qPrintable(attributes().value("name").toString()));
+ 
+                 if (isDontCareProto())
+                 {
+@@ -423,7 +422,7 @@ void PdmlReader::readProto()
+                     pdmlProto = appendPdmlProto(protoName, &pbProto);
+ 
+                     qDebug("%s: preProtocolHandler(expPos = %d)", 
+-                            protoName.toAscii().constData(), expPos_);
++                            qPrintable(protoName), expPos_);
+                     pdmlProto->preProtocolHandler(protoName, attributes(), 
+                             expPos_, pbProto, currentStream_);
+                 }
+@@ -461,7 +460,7 @@ void PdmlReader::readField(PdmlProtocol *pdmlProto,
+ 
+     QString fieldName = attributes().value("name").toString();
+ 
+-    qDebug("  fieldName:%s", fieldName.toAscii().constData());
++    qDebug("  fieldName:%s", qPrintable(fieldName));
+ 
+     pdmlProto->fieldHandler(fieldName, attributes(), pbProto, currentStream_);
+ 
+@@ -540,8 +539,7 @@ PdmlProtocol* PdmlReader::appendPdmlProto(const QString &protoName,
+ 
+         *pbProto = proto;
+ 
+-        qDebug("%s: name = %s", __FUNCTION__, 
+-                protoName.toAscii().constData());
++        qDebug("%s: name = %s", __FUNCTION__, qPrintable(protoName));
+     }
+     else
+         *pbProto = NULL;
+diff --git a/common/uint128.h b/common/uint128.h
+index f0610de..73037a6 100644
+--- a/common/uint128.h
++++ b/common/uint128.h
+@@ -157,12 +157,12 @@ inline UInt128 UInt128::operator|(const UInt128 &other) const
+     return UInt128(hi_ | other.hi_, lo_ | other.lo_);
+ }
+ 
+-template <> inline UInt128 qFromBigEndian<UInt128>(const uchar *src)
++template <> inline UInt128 qFromBigEndian<UInt128>(const void *src)
+ {
+     quint64 hi, lo;
+ 
+     hi = qFromBigEndian<quint64>(src);
+-    lo = qFromBigEndian<quint64>(src+8);
++    lo = qFromBigEndian<quint64>((uchar*)src+8);
+ 
+     return UInt128(hi, lo);
+ }
+diff --git a/common/updater.cpp b/common/updater.cpp
+index b758b3a..4b51496 100644
+--- a/common/updater.cpp
++++ b/common/updater.cpp
+@@ -20,16 +20,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
+ #include "updater.h"
+ 
+ #include <QCoreApplication>
+-#include <QHttp>
+-#include <QTemporaryFile>
++#include <QNetworkAccessManager>
++#include <QNetworkReply>
+ #include <QXmlStreamReader>
+ 
+ extern const char* version;
+ 
+ Updater::Updater()
+ {
+-    http_ = NULL;
+-    file_ = NULL;
++    http_ = new QNetworkAccessManager(this);
+ 
+ #if 1
+     // Tests!
+@@ -44,60 +43,39 @@ Updater::Updater()
+ Updater::~Updater()
+ {
+     delete http_;
+-    delete file_;
+ }
+ 
+ void Updater::checkForNewVersion()
+ {
+-    QString host("update.ostinato.org");
+-    QHttpRequestHeader reqHdr("GET", "/update/pad.xml");
+-    http_ = new QHttp(host);
+-    file_ = new QTemporaryFile();
+-
+-    reqHdr.setValue("Host", host);
+-    reqHdr.setValue("User-Agent", userAgent());
+-
+-    connect(http_, SIGNAL(responseHeaderReceived(QHttpResponseHeader)), 
+-            this, SLOT(responseReceived(QHttpResponseHeader)));
+-    connect(http_, SIGNAL(requestFinished(int, bool)), 
+-            this, SLOT(parseXml(int, bool)));
+-    connect(http_, SIGNAL(stateChanged(int)), 
+-            this, SLOT(stateUpdate(int)));
+-
+-    file_->open();
+-    qDebug("Updater: PAD XML file - %s", qPrintable(file_->fileName()));
+-
+-    http_->request(reqHdr, NULL, file_);
+-    qDebug("Updater: %s", qPrintable(http_->currentRequest().toString()
+-                .replace("\r\n", "\nUpdater: ")));
+-}
++    QNetworkRequest request(QUrl("http://update.ostinato.org/update/pad.xml"));
+ 
+-void Updater::stateUpdate(int state)
+-{
+-    qDebug("Updater: state %d", state);
+-}
++    //reqHdr.setHeader("Host", host);
++    request.setHeader(QNetworkRequest::UserAgentHeader, userAgent());
+ 
+-void Updater::responseReceived(QHttpResponseHeader response)
+-{
+-    qDebug("Updater: HTTP/%d.%d %d %s", 
+-            response.majorVersion(), response.minorVersion(),
+-            response.statusCode(), qPrintable(response.reasonPhrase()));
++    connect(http_, SIGNAL(finished(QNetworkReply*)), 
++            this, SLOT(parseXml(QNetworkReply*)));
++
++    http_->get(request);
++
++    QList<QByteArray> headers = request.rawHeaderList();
++    foreach(QByteArray hdr, headers ) {
++        QByteArray val = request.rawHeader(hdr);
++        qDebug("Updater: %s: %s", qPrintable(QString(hdr)),
++                qPrintable(QString(val)));
++    }
+ }
+ 
+-void Updater::parseXml(int /*id*/, bool error) 
++void Updater::parseXml(QNetworkReply *reply) 
+ {
+     QXmlStreamReader xml;
+     QString newVersion;
+ 
+-    if (error) {
+-        qDebug("Updater: %s", qPrintable(http_->errorString()));
++    if (reply->error()) {
++        qDebug("Updater: %s", qPrintable(reply->errorString()));
+         goto _exit;
+     }
+ 
+-    // Close and reopen the file so that we read from the top
+-    file_->close();
+-    file_->open();
+-    xml.setDevice(file_);
++    xml.setDevice(reply);
+ 
+     while (!xml.atEnd()) {
+         xml.readNext();
+diff --git a/common/updater.h b/common/updater.h
+index 993c7e0..a44f4a8 100644
+--- a/common/updater.h
++++ b/common/updater.h
+@@ -20,11 +20,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
+ #ifndef _UPDATER_H
+ #define _UPDATER_H
+ 
+-#include <QHttpResponseHeader>
++#include <QObject>
+ #include <QString>
+ 
+-class QHttp;
+-class QTemporaryFile;
++class QNetworkAccessManager;
++class QNetworkReply;
+ 
+ class Updater : public QObject
+ {
+@@ -39,16 +39,13 @@ class Updater : public QObject
+     void newVersionAvailable(QString);
+ 
+ private slots:
+-    void stateUpdate(int state);
+-    void responseReceived(QHttpResponseHeader response);
+-    void parseXml(int id, bool error);
++    void parseXml(QNetworkReply *reply);
+ 
+ private:
+     QString userAgent();
+     QString sysInfo();
+ 
+-    QHttp *http_;
+-    QTemporaryFile *file_;
++    QNetworkAccessManager *http_;
+ };
+ 
+ #endif
+diff --git a/common/userscript.cpp b/common/userscript.cpp
+index 220725f..406876a 100644
+--- a/common/userscript.cpp
++++ b/common/userscript.cpp
+@@ -281,7 +281,7 @@ void UserScriptProtocol::evaluateUserScript() const
+     userFunction = userProtocolScriptValue_.property(property);
+ 
+     qDebug("userscript property %s: isValid:%d/isFunc:%d", 
+-            property.toAscii().constData(),
++            qPrintable(property),
+             userFunction.isValid(), userFunction.isFunction());
+ 
+     if (!userFunction.isValid())
+@@ -301,7 +301,7 @@ void UserScriptProtocol::evaluateUserScript() const
+         goto _error_exception;
+ 
+     qDebug("userscript property %s return value: isValid:%d/isArray:%d",
+-            property.toAscii().constData(),
++            qPrintable(property),
+             userValue.isValid(), userValue.isArray());
+ 
+     if (!userValue.isArray())
+@@ -315,7 +315,7 @@ void UserScriptProtocol::evaluateUserScript() const
+     userFunction = userProtocolScriptValue_.property(property);
+ 
+     qDebug("userscript property %s: isValid:%d/isFunc:%d", 
+-            property.toAscii().constData(),
++            qPrintable(property),
+             userFunction.isValid(), userFunction.isFunction());
+ 
+     if (!userFunction.isValid())
+@@ -335,7 +335,7 @@ void UserScriptProtocol::evaluateUserScript() const
+         goto _error_exception;
+ 
+     qDebug("userscript property %s return value: isValid:%d/isNumber:%d",
+-            property.toAscii().constData(),
++            qPrintable(property),
+             userValue.isValid(), userValue.isNumber());
+ 
+     if (!userValue.isNumber())
+@@ -349,7 +349,7 @@ void UserScriptProtocol::evaluateUserScript() const
+     userFunction = userProtocolScriptValue_.property(property);
+ 
+     qDebug("userscript property %s: isValid:%d/isFunc:%d", 
+-            property.toAscii().constData(),
++            qPrintable(property),
+             userFunction.isValid(), userFunction.isFunction());
+ 
+     if (!userFunction.isValid())
+@@ -366,7 +366,7 @@ void UserScriptProtocol::evaluateUserScript() const
+         goto _error_exception;
+ 
+     qDebug("userscript property %s return value: isValid:%d/isNumber:%d",
+-            property.toAscii().constData(),
++            qPrintable(property),
+             userValue.isValid(), userValue.isNumber());
+ 
+     if (!userValue.isNumber())
+@@ -382,7 +382,7 @@ void UserScriptProtocol::evaluateUserScript() const
+     userFunction = userProtocolScriptValue_.property(property);
+ 
+     qDebug("userscript property %s: isValid:%d/isFunc:%d", 
+-            property.toAscii().constData(),
++            qPrintable(property),
+             userFunction.isValid(), userFunction.isFunction());
+ 
+     if (!userFunction.isValid())
+@@ -399,7 +399,7 @@ void UserScriptProtocol::evaluateUserScript() const
+         goto _error_exception;
+ 
+     qDebug("userscript property %s return value: isValid:%d/isNumber:%d",
+-            property.toAscii().constData(),
++            qPrintable(property),
+             userValue.isValid(), userValue.isNumber());
+ 
+     if (!userValue.isNumber())
+diff --git a/rpc/pbrpccommon.h b/rpc/pbrpccommon.h
+index fce0ba5..dd7d3f3 100644
+--- a/rpc/pbrpccommon.h
++++ b/rpc/pbrpccommon.h
+@@ -21,8 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
+ #define _PB_RPC_COMMON_H
+ 
+ // Print a HexDump
+-#define BUFDUMP(ptr, len) qDebug("%s", QString(QByteArray((char*)(ptr), \
+-    (len)).toHex()).toAscii().data()); 
++#define BUFDUMP(ptr, len) qDebug("%s", \
++        qPrintable(QString(QByteArray((char*)(ptr), (len)).toHex()))); 
+ 
+ /*
+ ** RPC Header (8)
+diff --git a/rpc/rpcconn.cpp b/rpc/rpcconn.cpp
+index db1c428..7f6d0f2 100644
+--- a/rpc/rpcconn.cpp
++++ b/rpc/rpcconn.cpp
+@@ -59,7 +59,7 @@ RpcConnection::RpcConnection(int socketDescriptor,
+ RpcConnection::~RpcConnection()
+ { 
+     qDebug("destroying connection to %s: %d", 
+-            clientSock->peerAddress().toString().toAscii().constData(),
++            qPrintable(clientSock->peerAddress().toString()),
+             clientSock->peerPort());
+ 
+     // If still connected, disconnect 
+@@ -89,7 +89,7 @@ void RpcConnection::start()
+                                       .arg(clientSock->peerPort())));
+ 
+     qDebug("accepting new connection from %s: %d", 
+-            clientSock->peerAddress().toString().toAscii().constData(),
++            qPrintable(clientSock->peerAddress().toString()),
+             clientSock->peerPort());
+     inStream = new google::protobuf::io::CopyingInputStreamAdaptor(
+                             new PbQtInputStream(clientSock));
+@@ -240,7 +240,7 @@ void RpcConnection::sendNotification(int notifType,
+ void RpcConnection::on_clientSock_disconnected()
+ {
+     qDebug("connection closed from %s: %d",
+-            clientSock->peerAddress().toString().toAscii().constData(),
++            qPrintable(clientSock->peerAddress().toString()),
+             clientSock->peerPort());
+ 
+     deleteLater();
+@@ -249,8 +249,7 @@ void RpcConnection::on_clientSock_disconnected()
+ 
+ void RpcConnection::on_clientSock_error(QAbstractSocket::SocketError socketError)
+ {
+-    qDebug("%s (%d)", clientSock->errorString().toAscii().constData(), 
+-            socketError);
++    qDebug("%s (%d)", qPrintable(clientSock->errorString()), socketError);
+ }
+ 
+ void RpcConnection::on_clientSock_dataAvail()
+@@ -399,7 +398,8 @@ void RpcConnection::on_clientSock_dataAvail()
+     return;
+ }
+ 
+-void RpcConnection::connIdMsgHandler(QtMsgType /*type*/, const char* msg)
++void RpcConnection::connIdMsgHandler(QtMsgType /*type*/,
++        const QMessageLogContext &/*context*/, const QString &msg)
+ {
+     if (connId.hasLocalData()) {
+         QString newMsg(*connId.localData());
+@@ -410,6 +410,6 @@ void RpcConnection::connIdMsgHandler(QtMsgType /*type*/, const char* msg)
+         return;
+     }
+ 
+-    fprintf(stderr, "%s\n", msg);
++    fprintf(stderr, "%s\n", qPrintable(msg));
+     fflush(stderr);
+ }
+diff --git a/rpc/rpcconn.h b/rpc/rpcconn.h
+index b73ec64..532caa8 100644
+--- a/rpc/rpcconn.h
++++ b/rpc/rpcconn.h
+@@ -46,8 +46,9 @@ class RpcConnection : public QObject
+     RpcConnection(int socketDescriptor, ::google::protobuf::Service *service);
+     virtual ~RpcConnection();
+ 
+-    static void connIdMsgHandler(QtMsgType type, const char* msg);
+-
++    static void connIdMsgHandler(QtMsgType type,
++                                 const QMessageLogContext &context,
++                                 const QString &msg);
+ private:
+     void writeHeader(char* header, quint16 type, quint16 method, 
+                      quint32 length);
+diff --git a/rpc/rpcserver.cpp b/rpc/rpcserver.cpp
+index 5121a67..54f9a16 100644
+--- a/rpc/rpcserver.cpp
++++ b/rpc/rpcserver.cpp
+@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
+ 
+ #include "rpcconn.h"
+ 
++#include <QThread>
+ #include <QThread>
+ 
+ // FIXME: QThreadX till we change minimum version of Qt from Qt4.3+ to Qt4.4+
+@@ -35,7 +36,7 @@ RpcServer::RpcServer()
+ {
+     service = NULL; 
+ 
+-    qInstallMsgHandler(RpcConnection::connIdMsgHandler);
++    qInstallMessageHandler(RpcConnection::connIdMsgHandler);
+ }
+ 
+ RpcServer::~RpcServer()
+@@ -51,12 +52,12 @@ bool RpcServer::registerService(::google::protobuf::Service *service,
+     {
+         qDebug("Unable to start the server on <%s>: %s",
+                 qPrintable(address.toString()),
+-                errorString().toAscii().constData());
++                qPrintable(errorString()));
+         return false;
+     }
+ 
+     qDebug("The server is running on %s: %d", 
+-            serverAddress().toString().toAscii().constData(),
++            qPrintable(serverAddress().toString()),
+             serverPort());
+     return true;
+ }
