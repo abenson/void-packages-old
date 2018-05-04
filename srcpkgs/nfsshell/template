@@ -1,0 +1,19 @@
+# Template file for 'nfsshell'
+pkgname=nfsshell
+version=2013.05.10
+revision=1
+_gitver=09cdd52880e4bbc34c58727e6df3aaf1db4bb8d8
+build_style=gnu-makefile
+wrksrc="${pkgname}-${_gitver}"
+makedepends="readline-devel"
+short_desc="User level access to an NFS server"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="BSD-3-Clause"
+homepage="https://github.com/NetDirect/nfsshell"
+distfiles="https://github.com/NetDirect/nfsshell/archive/${_gitver}.tar.gz"
+checksum=5d1bc29832bad04f83fae004de14f65ef576f56bd3868c5b70b0f10d968ec567
+
+do_install() {
+	vbin nfsshell
+	vlicense LICENSE.txt
+}

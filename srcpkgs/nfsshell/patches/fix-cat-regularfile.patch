@@ -1,0 +1,33 @@
+From eb4bb205e7ee88d6a4f27a7352ee17f50ad6b0c8 Mon Sep 17 00:00:00 2001
+From: Niels de Vos <ndevos@redhat.com>
+Date: Tue, 7 Apr 2015 00:55:41 +0530
+Subject: [PATCH] "cat" should be able to read regular files
+
+It is incorrect to test the type of the directory that contains the
+looked-up file. Instead, test the attributes of the file that were
+returned by the lookup.
+
+Signed-off-by: Niels de Vos <ndevos@redhat.com>
+---
+ nfsshell.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/nfsshell.c b/nfsshell.c
+index 5d7d52a..5faceeb 100644
+--- nfsshell.c
++++ nfsshell.c
+@@ -628,12 +628,12 @@ do_cat(int argc, char **argv)
+ 	fprintf(stderr, "%s: %s\n", argv[1], nfs_error(dres->status));
+ 	return;
+     }
+-    if (dres->LOOKUP3res_u.resok.dir_attributes.post_op_attr_u.attributes.type != NF3REG) {
++    if (dres->LOOKUP3res_u.resok.obj_attributes.post_op_attr_u.attributes.type != NF3REG) {
+ 	fprintf(stderr, "%s: is not a regular file\n", argv[1]);
+ 	return;
+     }
+     nfs_fh3copy(&rargs.file, &dres->LOOKUP3res_u.resok.object);
+-    for (offset = 0; offset < dres->LOOKUP3res_u.resok.dir_attributes.post_op_attr_u.attributes.size; ) {
++    for (offset = 0; offset < dres->LOOKUP3res_u.resok.obj_attributes.post_op_attr_u.attributes.size; ) {
+ 	rargs.offset = offset;
+ 	rargs.count = transfersize;
+ 	if ((rres = nfs3_read_3(&rargs, nfsclient)) == NULL) {
