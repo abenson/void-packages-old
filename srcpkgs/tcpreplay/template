@@ -1,0 +1,17 @@
+# Template file for 'tcpreplay'
+pkgname=tcpreplay
+version=4.2.6
+revision=1
+build_style=gnu-configure
+configure_args="--disable-tuntap
+ --with-libpcap=${XBPS_CROSS_BASE}/usr
+ --with-libdnet=${XBPS_CROSS_BASE}/usr"
+hostmakedepends="pkg-config"
+makedepends="libpcap-devel libdnet-devel"
+short_desc="Edit and replay previously captured network traffic"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="GPL-3.0-or-later"
+homepage="https://tcpreplay.appneta.com/"
+distfiles="https://github.com/appneta/${pkgname}/releases/download/v${version}/${pkgname}-${version}.tar.xz"
+checksum=db5424e54e8cec83594087caa9e5a8d4c4d6b8898ceaff112563db74baf1f841
+
