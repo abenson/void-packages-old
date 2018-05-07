@@ -1,0 +1,37 @@
+# Template file for 'biblioteq'
+pkgname=biblioteq
+version=2018.05.05
+revision=1
+conf_files="/etc/biblioteq.conf"
+hostmakedepends="qt5-qmake pkg-config"
+makedepends="qt5-devel qt5-tools-devel yaz-devel libpqxx-devel
+ poppler-cpp-devel poppler-qt5-devel sqlite-devel"
+short_desc="Professional cataloging and library management suite"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="BSD-3-Clause"
+homepage="https://textbrowser.github.io/biblioteq/"
+#changelog="https://textbrowser.github.io/biblioteq/release_notes.html"
+distfiles="https://github.com/textbrowser/${pkgname}/archive/${version}.tar.gz"
+checksum=67608ad4683f6abf2cf7f5688b9b894a40c26efbf8da53fee45aca4e486a1a56
+
+if [ -n "$CROSS_BUILD" ]; then
+	hostmakedepends+=" qt5-devel poppler-cpp-devel"
+fi
+
+do_configure() {
+	qmake -o Makefile biblioteq.pro
+}
+
+do_build() {
+	make
+}
+
+do_install() {
+	vinstall BiblioteQ 755 usr/lib/BiblioteQ
+	vcopy Translations usr/lib/BiblioteQ
+	vconf biblioteq.conf
+	vinstall Icons/book.png 644 usr/share/icons
+	vlicense LICENSE
+	vmkdir usr/bin
+	ln -s /usr/lib/BiblioteQ/BilbioteQ ${DESTDIR}/usr/bin/biblioteq
+}
