@@ -1,0 +1,44 @@
+# Template file for 'dag'
+pkgname=dag
+version=5.6.1
+revision=1
+build_style=gnu-configure
+configure_args="--without-drivers"
+hostmakedepends="pkg-config"
+makedepends="libpcap-devel"
+depends="dag-dkms-${version}_${revision}"
+short_desc="Endace DAG configuration utilities and libraries"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="Proprietary Endace License"
+repository=nonfree
+restricted=yes
+homepage="https://www.endace.com/"
+distfiles="${pkgname}-${version}.tar.gz"
+checksum=0517bf23112cee668dba37ad08fcc4ba8c1b86c4d6d91e9132a61d8738f8f05d
+
+post_install() {
+	vlicense doc/Licence.pdf
+}
+
+dag-dkms_package() {
+	short_desc="${_desc} - DKMS kernel module"
+	triggers="dkms"
+	depends="dkms"
+	noarch=yes
+	pkg_install() {
+		_dkmssrc=${PKGDESTDIR}/usr/src/${sourcepkg}-${version}
+		mkdir -p ${_dkmssrc}
+		cd ${wrksrc}/drv/linux
+		cp -a . ${_dkmssrc}
+	}
+}
+
+dag-devel_package() {
+	short_desc+=" - development files"
+	depends="${makedepends} ${sourcepkg}>=${version}_${revision}"
+	pkg_install() {
+		vmove usr/include
+		vmove usr/share/man3
+		vmove "usr/lib/*.a"
+	}
+}
