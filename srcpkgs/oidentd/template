@@ -1,0 +1,19 @@
+# Template file for 'oidentd'
+pkgname=oidentd
+version=2.2.3
+revision=1
+build_style=gnu-configure
+conf_files="/etc/oidentd.conf /etc/oidentd_masq.conf"
+hostmakedepends="flex"
+makedepends="libnetfilter_conntrack-devel libcap-ng-devel"
+short_desc="RFC 1413 compliant ident daemon"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="GPL-2.0-only, GFDL-1.1"
+#changelog="https://raw.githubusercontent.com/janikrabe/${pkgname}/v${version}/ChangeLog"
+homepage="https://oidentd.janikrabe.com/"
+distfiles="https://ftp.janikrabe.com/pub/${pkgname}/releases/latest/${pkgname}-${version}.tar.xz"
+checksum=fe647e864c6bf80b0f398d9162559d86466c41c691a3a8b0fbc923492e43fdcc
+
+post_install() {
+	vsv oidentd
+}
