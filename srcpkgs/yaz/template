@@ -1,0 +1,26 @@
+# Template file for 'yaz'
+pkgname=yaz
+version=5.25.0
+revision=1
+build_style=gnu-configure
+short_desc="Z39.50 toolkit"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="BSD-3-Clause"
+homepage="https://www.indexdata.com/resources/software/yaz/"
+#changelog="https://software.indexdata.com/yaz/doc/NEWS"
+distfiles="http://ftp.indexdata.dk/pub/${pkgname}/${pkgname}-${version}.tar.gz"
+checksum=980759ffeb6ccb319dfa41613c56764c18b1f02b78cb2a1ade8dee1e2ec7a183
+
+post_install() {
+	vlicense LICENSE
+}
+
+yaz-devel_package() {
+	short_desc+=" - development files"
+	depends="${makedepends} ${sourcepkg}>=${version}_${revision}"
+	pkg_install() {
+		vmove "/usr/lib/*.a"
+		vmove "/usr/lib/*.so"
+		vmove "/usr/include"
+	}
+}
