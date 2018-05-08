@@ -1,0 +1,14 @@
+# Template file for 'snort'
+pkgname=snort
+version=2.9.11.1
+revision=1
+build_style=gnu-configure
+hostmakedepends="pkg-config"
+makedepends="daq-devel pcre-devel libdnet-devel"
+depends=""
+short_desc="Powerful intrusion detection system"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="GPL-2.0-or-later"
+homepage="https://www.snort.org"
+distfiles="https://www.snort.org/downloads/${pkgname}/${pkgname}-${version}.tar.gz"
+checksum=9f6b3aeac5a109f55504bd370564ac431cb1773507929dc461626898f33f46cd
