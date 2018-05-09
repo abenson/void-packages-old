@@ -1,0 +1,64 @@
+# Template file for 'plexmediaserver'
+pkgname=plexmediaserver
+version=1.13.0.5023
+_pkgver=31d3c0c65
+revision=1
+hostmakedepends="wget"
+makedepends="libdb4"
+depends="python"
+conf_files="/etc/default/plexmediaserver"
+short_desc="Media center software"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="proprietary"
+repository=nonfree
+only_for_archs="i686 x86_64"
+nopie=yes
+nostrip=yes
+homepage="http://www.plex.tv"
+
+make_dirs="/var/lib/plexmediaserver 0750 _plex _plex"
+
+system_accounts="_plex"
+_plex_homedir="/var/lib/plexmediaserver"
+
+case "$XBPS_TARGET_MACHINE" in
+	x86_64)
+		checksum="b6c8184abba84ac18b5db2d7b80d2ef4ca77cc616f99c7ffb999ae4af42f868e"
+		;;
+	i686)
+		checksum="5719041f9b185147d0bfcbe56aa6212055159c393e9b44d420c3c95b59182f3c"
+		;;
+	*)
+		broken="not available for ${CROSS_BUILD}"
+		;;
+esac
+
+_srcurl="https://plex.tv/downloads/latest/1?channel=16&build=linux-ubuntu-${XBPS_TARGET_MACHINE}&distro=ubuntu"
+_fname="plexmediaserver_${version}-${_pkgver}_${XBPS_TARGET_MACHINE}.deb"
+
+
+do_extract() {
+	mkdir -p "${wrksrc}"
+	cd "${wrksrc}"
+	ar x "${XBPS_SRCDISTDIR}/${_fname}"
+	tar zxf data.tar.gz
+}
+
+do_install() {
+
+	# plex
+	vbin usr/sbin/start_pms
+	vmkdir usr/lib/plexmediaserver
+	cp -rv usr/lib/plexmediaserver ${PKGDESTDIR}/usr/lib/
+	vmkdir usr/share/applications
+	vcopy "usr/share/applications/*" usr/share/applications
+	vmkdir usr/share/pixmaps
+	vcopy "usr/share/pixmaps/*" usr/share/pixmaps
+	vmkdir usr/lib/udev/rules.d
+	vcopy "lib/udev/rules.d/*" usr/lib/udev/rules.d
+	vmkdir etc/default
+	vcopy etc/default/plexmediaserver etc/default
+
+	# runit service
+	vsv plexmediaserver
+}

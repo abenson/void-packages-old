@@ -1,0 +1,17 @@
+--- usr/sbin/start_pms.orig
++++ usr/sbin/start_pms
+@@ -1,5 +1,7 @@
+ #!/bin/sh
+ 
++HOME="/var/lib/plexmediaserver"
++
+ #change these parameters in /etc/default/plexmediaserver
+ export PLEX_MEDIA_SERVER_MAX_PLUGIN_PROCS=6
+ export PLEX_MEDIA_SERVER_HOME=/usr/lib/plexmediaserver
+@@ -33,4 +35,5 @@
+ # Add sleep - Possible fix for start on boot.
+ sleep 3
+ 
+-(cd /usr/lib/plexmediaserver; ./Plex\ Media\ Server)
++cd /usr/lib/plexmediaserver
++exec ./Plex\ Media\ Server -f
