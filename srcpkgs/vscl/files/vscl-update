@@ -15,7 +15,7 @@ filename=$(/bin/curl -sL "${AVDATURL}/avvdat.ini" | /bin/fgrep -A2 '[AVV-ZIP]' |
 
 echo "Fetching $filename"
 
-/bin/curl -Lo "${filename}" "${AVDATURL}/$filename"
+/bin/curl -#Lo "${filename}" "${AVDATURL}/$filename"
 
 /bin/unzip -o -d "${AVDATDIR}" "${filename}" "*.dat"
 

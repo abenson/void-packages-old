@@ -1,7 +1,7 @@
 # Template file for 'vscl'
 pkgname=vscl
 version=6.1.0
-revision=1
+revision=2
 build_style=fetch
 create_wrksrc=yes
 short_desc="McAfee VirusScan Command Line for Linux"
