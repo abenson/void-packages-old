@@ -1,0 +1,85 @@
+--- deps/capstone2llvmir/deps/keystone/llvm/cmake/config-ix.cmake.orig
++++ deps/capstone2llvmir/deps/keystone/llvm/cmake/config-ix.cmake
+@@ -120,7 +120,7 @@
+   endif()
+   if(LLVM_ENABLE_TERMINFO)
+     set(HAVE_TERMINFO 0)
+-    foreach(library tinfo terminfo curses ncurses ncursesw)
++    foreach(library terminfo curses ncurses ncursesw)
+       string(TOUPPER ${library} library_suffix)
+       check_library_exists(${library} setupterm "" HAVE_TERMINFO_${library_suffix})
+       if(HAVE_TERMINFO_${library_suffix})
+--- deps/capstone2llvmir/deps/llvm/src/cmake/config-ix.cmake.orig
++++ deps/capstone2llvmir/deps/llvm/src/cmake/config-ix.cmake
+@@ -133,7 +133,7 @@
+   endif()
+   if(LLVM_ENABLE_TERMINFO)
+     set(HAVE_TERMINFO 0)
+-    foreach(library tinfo terminfo curses ncurses ncursesw)
++    foreach(library terminfo curses ncurses ncursesw)
+       string(TOUPPER ${library} library_suffix)
+       check_library_exists(${library} setupterm "" HAVE_TERMINFO_${library_suffix})
+       if(HAVE_TERMINFO_${library_suffix})
+--- deps/capstone2llvmir/deps/llvm/CMakeLists.txt.orig
++++ deps/capstone2llvmir/deps/llvm/CMakeLists.txt
+@@ -207,8 +207,8 @@
+ endif()
+ 
+ if(UNIX)
+-	target_link_libraries(llvm INTERFACE debug     ${ZLIB_LIBRARIES} rt dl tinfo)
+-	target_link_libraries(llvm INTERFACE optimized ${ZLIB_LIBRARIES} rt dl tinfo)
++	target_link_libraries(llvm INTERFACE debug     ${ZLIB_LIBRARIES} rt dl ncurses)
++	target_link_libraries(llvm INTERFACE optimized ${ZLIB_LIBRARIES} rt dl ncurses)
+ endif()
+ 
+ # Set include directories.
+--- deps/fileformat/deps/llvm/CMakeLists.txt.orig
++++ deps/fileformat/deps/llvm/CMakeLists.txt
+@@ -207,8 +207,8 @@
+ endif()
+ 
+ if(UNIX)
+-	target_link_libraries(llvm INTERFACE debug     ${ZLIB_LIBRARIES} rt dl tinfo)
+-	target_link_libraries(llvm INTERFACE optimized ${ZLIB_LIBRARIES} rt dl tinfo)
++	target_link_libraries(llvm INTERFACE debug     ${ZLIB_LIBRARIES} rt dl ncurses)
++	target_link_libraries(llvm INTERFACE optimized ${ZLIB_LIBRARIES} rt dl ncurses)
+ endif()
+ 
+ # Set include directories.
+--- deps/fnc-patterns/deps/fileformat/deps/llvm/CMakeLists.txt.orig
++++ deps/fnc-patterns/deps/fileformat/deps/llvm/CMakeLists.txt
+@@ -207,8 +207,8 @@
+ endif()
+ 
+ if(UNIX)
+-	target_link_libraries(llvm INTERFACE debug     ${ZLIB_LIBRARIES} rt dl tinfo)
+-	target_link_libraries(llvm INTERFACE optimized ${ZLIB_LIBRARIES} rt dl tinfo)
++	target_link_libraries(llvm INTERFACE debug     ${ZLIB_LIBRARIES} rt dl ncurses)
++	target_link_libraries(llvm INTERFACE optimized ${ZLIB_LIBRARIES} rt dl ncurses)
+ endif()
+ 
+ # Set include directories.
+--- deps/llvm/src/cmake/config-ix.cmake.orig
++++ deps/llvm/src/cmake/config-ix.cmake
+@@ -133,7 +133,7 @@
+   endif()
+   if(LLVM_ENABLE_TERMINFO)
+     set(HAVE_TERMINFO 0)
+-    foreach(library tinfo terminfo curses ncurses ncursesw)
++    foreach(library terminfo curses ncurses ncursesw)
+       string(TOUPPER ${library} library_suffix)
+       check_library_exists(${library} setupterm "" HAVE_TERMINFO_${library_suffix})
+       if(HAVE_TERMINFO_${library_suffix})
+--- deps/llvm/CMakeLists.txt.orig
++++ deps/llvm/CMakeLists.txt
+@@ -207,8 +207,8 @@
+ endif()
+ 
+ if(UNIX)
+-	target_link_libraries(llvm INTERFACE debug     ${ZLIB_LIBRARIES} rt dl tinfo)
+-	target_link_libraries(llvm INTERFACE optimized ${ZLIB_LIBRARIES} rt dl tinfo)
++	target_link_libraries(llvm INTERFACE debug     ${ZLIB_LIBRARIES} rt dl ncurses)
++	target_link_libraries(llvm INTERFACE optimized ${ZLIB_LIBRARIES} rt dl ncurses)
+ endif()
+ 
+ # Set include directories.

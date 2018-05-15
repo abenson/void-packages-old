@@ -1,0 +1,36 @@
+# Template file for 'retdec'
+pkgname=retdec
+version=3.0
+revision=1
+hostmakedepends="automake cmake flex git libtool pkg-config python3 wget"
+makedepends="libressl-devel ncurses-devel zlib-devel"
+depends="bash bc graphviz upx"
+short_desc="Retargetable machine-code decompiler based on LLVM"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="MIT, BSD-3-Clause, GPL-2.0-only, LGPL-2.1, Zlib, WTFPL"
+homepage="https://retdec.com/"
+
+do_fetch() {
+	git clone --recursive --branch=v$version https://github.com/avast-tl/$pkgname $pkgname-$version
+}
+
+do_configure() {
+	mkdir -p "${wrksrc}/build"
+	cd "${wrksrc}/build"
+	cmake .. -DCMAKE_INSTALL_PREFIX=${PKGDESTDIR}/usr
+}
+
+do_build() {
+	cd "${wrksrc}/build"
+	make -j$XBPS_MAKEJOBS
+}
+
+do_install() {
+	cd "${wrksrc}/build"
+	make install
+}
+
+post_install() {
+	vlicense LICENSE
+	vlicense LICENSE-THIRD-PARTY
+}
