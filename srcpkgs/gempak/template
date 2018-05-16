@@ -1,0 +1,30 @@
+# Template file for 'gempak'
+pkgname=gempak
+version=7.4.2
+revision=1
+wrksrc="GEMPAK7"
+hostmakedepends="bash flex gcc-fortran"
+makedepends="lesstif-devel libXft-devel libXp-devel libXt-devel libXtst-devel"
+depends=""
+short_desc="Analysis, display, and product generation package for meteorological data"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="BSD-3-Clause"
+homepage="https://www.unidata.ucar.edu/software/gempak/"
+distfiles="https://www.unidata.ucar.edu/downloads/${pkgname}/latest/${pkgname}-${version}.tar.gz"
+checksum=45c91bbe143696a3bf6d11ca91aee7b927418d69d942cb2e316a84cf15eebdc8
+
+pre_configure() {
+	sed -i "s|NAWIPS=/home/gempak/GEMPAK7|NAWIPS=${wrksrc}|" Gemenviron.profile
+	source Gemenviron.profile
+}
+
+do_build() {
+	source Gemenviron.profile
+	make everything
+}
+
+do_install() {
+	source Gemenviron.profile
+	make install
+	vlicense LICENSE
+}
