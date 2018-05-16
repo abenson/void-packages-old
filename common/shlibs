@@ -3343,3 +3343,4 @@ libkid3-core.so.3.6.0 kid3-3.6.0_1
 libkid3-gui.so.3.6.0 kid3-3.6.0_1
 libcfitsio.so.3 cfitsio-3.450_1
 librsl.so.1 rsl-1.44_1
+libgrits.so.5 grits-0.8_1

@@ -1,0 +1,34 @@
+# Template file for 'grits'
+pkgname=grits
+version=0.8
+revision=1
+build_style=gnu-configure
+hostmakedepends="pkg-config"
+makedepends="glib-devel cairo-devel libsoup-devel gtk+-devel glu-devel libfreeglut-devel"
+short_desc="Virtual Globe library"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="GPL-3.0-or-later"
+homepage="http://pileus.org/aweather/grits"
+distfiles="http://pileus.org/grits/files/grits-${version}.tar.gz"
+checksum=9191a1617fa6b96615f1436054a39ddb681f205ab062f5a6b79079244e9853ea
+
+grits-demo_package() {
+	short_desc+=" - demo"
+	depends="${makedepends} ${sourcepkg}>=${version}_${revision}"
+	pkg_install() {
+		vmove "usr/bin/grits-demo"
+		vmove "/usr/share/man"
+	}
+}
+
+grits-devel_package() {
+	short_desc+=" - development files"
+	depends="${makedepends} ${sourcepkg}>=${version}_${revision}"
+	pkg_install() {
+		vmove "usr/include"
+		vmove "usr/lib/libgrits.a"
+		vmove "usr/lib/libgrits.so"
+		vmove "usr/lib/pkgconfig"
+		vmove "usr/share/gtk-doc/html/grits"
+	}
+}
