@@ -1,0 +1,13 @@
+# Template file for 'aweather'
+pkgname=aweather
+version=0.8
+revision=1
+build_style=gnu-configure
+hostmakedepends="pkg-config"
+makedepends="glib-devel grits-devel gtk+-devel rsl-devel"
+short_desc="Tool to integrate and visualize high-quality meteorological data"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="GPL-3.0-or-later"
+homepage="http://pileus.org/aweather"
+distfiles="http://pileus.org/aweather/files/aweather-${version}.tar.gz"
+checksum=2eb99f7d4cf055ec8b9acc7e82ffd09e98ed3c9163150130d38f0bc84c49b661
