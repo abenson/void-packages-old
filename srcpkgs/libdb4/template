@@ -1,0 +1,21 @@
+# Template file for 'libdb4'
+pkgname=libdb4
+version=4.8.30
+revision=1
+wrksrc="db-${version}"
+build_wrksrc="build_unix"
+build_style=gnu-configure
+configure_script="../dist/configure"
+configure_args="--enable-compat185 --enable-cxx --enable-static"
+make_build_args="LIBSO_LIBS=-lpthread"
+short_desc="The Berkeley DB embedded database system - compatibility libraries"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="BSD"
+homepage="http://www.oracle.com/technetwork/products/berkeleydb/overview/index.html"
+distfiles="http://download.oracle.com/berkeley-db/db-${version}.tar.gz"
+checksum=e0491a07cdb21fb9aa82773bbbedaeb7639cbd0e7f96147ab46141e0045db72a
+
+do_install() {
+	vmkdir usr/lib
+	vcopy ".libs/*.so*" usr/lib
+}
