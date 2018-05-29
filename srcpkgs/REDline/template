@@ -1,0 +1,25 @@
+# Template file for 'REDline'
+pkgname=REDline
+version=50.3.45111
+revision=1
+only_for_archs="x86_64"
+wrksrc="${pkgname}"
+hostmakedepends=""
+makedepends=""
+depends=""
+short_desc="Process REDCODE RAW R3D files"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="Proprietary"
+restricted=yes
+nopie=yes
+nostrip=yes
+homepage="https://www.red.com"
+distfiles="http://downloads.red.com.s3.amazonaws.com/software/redline/REDline_Build_${version}.tar.gz"
+checksum=e06c3948cba28fd238788b9850c1bb88db7855ab6960912f27f1d8347644f0ce
+
+do_install() {
+	mkdir -p "${DESTDIR}/usr/lib/REDline"
+	mv * "${DESTDIR}/usr/lib/REDline/"
+	mkdir -p "${DESTDIR}/usr/bin"
+	ln -sf /usr/lib/REDline/REDline "${DESTDIR}/usr/bin/REDline"
+}
