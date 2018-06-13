@@ -1,0 +1,21 @@
+# Template file for 'bro'
+pkgname=bro
+version=2.5.4
+revision=1
+build_style=cmake
+configure_args="-D_GNU_SOURCE=1"
+nocross="Needs to build part of itself to run, can't be built separately yet."
+hostmakedepends="flex pkg-config python3"
+makedepends="bind-devel geoip-devel gperftools-devel
+ jemalloc-devel libpcap-devel libressl-devel"
+short_desc="Advanced framework for network traffic analysis"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="BSD-3-Clause"
+homepage="https://www.bro.org"
+distfiles="https://www.bro.org/downloads/bro-${version}.tar.gz"
+checksum=80daea433fa654f2602cf67b19b9121ff6ad57761bad73cc29020c4f490c5f1f
+
+post_install() {
+	vsv bro
+	vlicense COPYING
+}
